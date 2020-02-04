@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "app.fullname" . }}
+  namespace: "{{ .Values.namespace }}"
+  labels:
+    app.kubernetes.io/name: {{ include "app.name" . }}
+    helm.sh/chart: {{ include "app.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "app.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "app.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        date: "{{ .Release.Time.Seconds }}"
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+          - name: SPRING_PROFILES_ACTIVE
+            value: "{{ .Values.spring.profiles }}"
+        ports:
+          - name: http
+            containerPort: {{ .Values.container.port }}
+            protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: "{{ .Values.spring.healthcheck }}"
+            port: http
+          initialDelaySeconds: 120
+          periodSeconds: 10
+          failureThreshold: 1
+        readinessProbe:
+          httpGet:
+            path: "{{ .Values.spring.healthcheck }}"
+            port: http
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          failureThreshold: 10
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+    affinity:
+      {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+    tolerations:
+      {{- toYaml . | nindent 8 }}
+    {{- end }}
