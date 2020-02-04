@@ -1,0 +1,55 @@
+###
+# Values to configure the deployment
+###
+
+# Namespace
+namespace: default
+
+# Number of pods
+replicaCount: 3
+
+# Profile configuration for spring
+spring:
+  profiles: "k8s"
+  healthcheck: "/actuator/health"
+
+# Image and version
+image:
+  repository: b0rr3g0/uca-workshop
+  tag: latest
+  pullPolicy: Always
+
+#Name application
+nameOverride: "ms-name"
+
+# k8s service
+service:
+  type: ClusterIP
+  port: 80
+
+# Container port
+container:
+  port: 8080
+
+ingress:
+  enabled: false
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths: []
+  tls: []
+
+#Limit resources
+resources:
+  limits:
+    cpu: 900m
+    memory: 2560Mi
+  requests:
+    cpu: 500m
+    memory: 2048Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
